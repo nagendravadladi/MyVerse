@@ -95,27 +95,38 @@ export default function StudyZone({ userId }: StudyZoneProps) {
           </div>
 
           {/* Quick Add Section */}
-          <div className="flex gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <Button
               variant="outline"
-              className="flex-1 border-dashed hover:border-primary hover:text-primary"
+              className="border-dashed hover:border-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950 transition-all duration-200"
               onClick={() => {
                 setResourceType('youtube');
                 setShowAddModal(true);
               }}
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Add YouTube Playlist
+              <Youtube className="mr-2 h-4 w-4" />
+              Add YouTube
             </Button>
             <Button
               variant="outline"
-              className="flex-1 border-dashed hover:border-primary hover:text-primary"
+              className="border-dashed hover:border-blue-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-950 transition-all duration-200"
+              onClick={() => {
+                setResourceType('note');
+                setShowAddModal(true);
+              }}
+            >
+              <StickyNote className="mr-2 h-4 w-4" />
+              Add Note
+            </Button>
+            <Button
+              variant="outline"
+              className="border-dashed hover:border-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-950 transition-all duration-200"
               onClick={() => {
                 setResourceType('resource');
                 setShowAddModal(true);
               }}
             >
-              <Plus className="mr-2 h-4 w-4" />
+              <Book className="mr-2 h-4 w-4" />
               Add Resource
             </Button>
           </div>

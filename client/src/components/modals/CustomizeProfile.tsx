@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -120,26 +120,29 @@ export default function CustomizeProfile({ user, open, onClose }: CustomizeProfi
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <User className="text-primary" />
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto bg-white dark:bg-gray-900 border-0 shadow-xl">
+        <DialogHeader className="text-center pb-4 border-b border-gray-200 dark:border-gray-700">
+          <DialogTitle className="flex items-center justify-center gap-2 text-xl font-bold text-gray-900 dark:text-white">
+            <User className="text-primary w-6 h-6" />
             Customize Profile
           </DialogTitle>
+          <DialogDescription className="text-gray-600 dark:text-gray-400">
+            Update your profile information, daily quote, and portfolio link
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
           {/* Profile Picture */}
-          <div className="text-center space-y-3">
-            <div className="relative inline-block">
-              <Avatar className="w-24 h-24 border-4 border-primary/20">
-                <AvatarImage src={previewImage || profilePicture || undefined} />
-                <AvatarFallback className="text-2xl">
+          <div className="flex flex-col items-center space-y-4">
+            <div className="relative">
+              <Avatar className="w-28 h-28 border-4 border-primary/30 shadow-lg">
+                <AvatarImage src={previewImage || profilePicture || undefined} className="object-cover" />
+                <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary/20 to-primary/40 text-primary">
                   {name ? name.charAt(0).toUpperCase() : 'U'}
                 </AvatarFallback>
               </Avatar>
-              <label className="absolute bottom-0 right-0 p-2 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-colors">
-                <Camera className="w-4 h-4 text-white" />
+              <label className="absolute -bottom-2 -right-2 p-3 bg-primary rounded-full cursor-pointer hover:bg-primary/90 transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-110">
+                <Camera className="w-5 h-5 text-white" />
                 <input
                   type="file"
                   accept="image/*"
@@ -148,33 +151,37 @@ export default function CustomizeProfile({ user, open, onClose }: CustomizeProfi
                 />
               </label>
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-400">
-              Click camera icon to upload new photo
+            <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
+              Click the camera icon to upload a new photo
             </p>
           </div>
 
           {/* Name */}
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
+          <div className="space-y-3">
+            <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300">Name *</Label>
             <Input
               id="name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Enter your name"
+              placeholder="Enter your full name"
               required
+              className="h-12 px-4 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </div>
 
           {/* Daily Quote */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label htmlFor="quote">Daily Quote</Label>
+              <Label htmlFor="quote" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <Quote className="w-4 h-4" />
+                Daily Quote
+              </Label>
               <Button
                 type="button"
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 onClick={generateRandomQuote}
-                className="text-xs h-6"
+                className="text-xs h-8 px-3 bg-gradient-to-r from-primary/10 to-primary/20 hover:from-primary/20 hover:to-primary/30 border-primary/30"
               >
                 <Sparkles className="w-3 h-3 mr-1" />
                 Random
@@ -184,18 +191,22 @@ export default function CustomizeProfile({ user, open, onClose }: CustomizeProfi
               id="quote"
               value={dailyQuote}
               onChange={(e) => setDailyQuote(e.target.value)}
-              placeholder="Enter an inspirational quote..."
+              placeholder="Enter an inspirational quote to motivate your day..."
               rows={3}
               maxLength={200}
+              className="px-4 py-3 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary/20 transition-all resize-none"
             />
-            <p className="text-xs text-gray-500">
-              {dailyQuote.length}/200 characters
-            </p>
+            <div className="flex justify-between items-center">
+              <p className="text-xs text-gray-500">Your personal daily motivation</p>
+              <p className="text-xs text-gray-500">
+                {dailyQuote.length}/200
+              </p>
+            </div>
           </div>
 
           {/* Portfolio Link */}
-          <div className="space-y-2">
-            <Label htmlFor="portfolio" className="flex items-center gap-2">
+          <div className="space-y-3">
+            <Label htmlFor="portfolio" className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
               <Link className="w-4 h-4" />
               Portfolio Link
             </Label>
@@ -205,45 +216,57 @@ export default function CustomizeProfile({ user, open, onClose }: CustomizeProfi
               value={portfolioLink}
               onChange={(e) => setPortfolioLink(e.target.value)}
               placeholder="https://your-portfolio.com"
+              className="h-12 px-4 bg-gray-50 dark:bg-gray-800 border-gray-300 dark:border-gray-600 focus:ring-2 focus:ring-primary/20 transition-all"
             />
             <p className="text-xs text-gray-500">
-              Share your work with others
+              Share your work and achievements with others
             </p>
           </div>
 
-          {/* Profile URL Preview */}
+          {/* Portfolio URL Preview */}
           {portfolioLink && (
-            <div className="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
-              <p className="text-sm text-blue-800 dark:text-blue-200">
-                <Quote className="w-4 h-4 inline mr-1" />
-                Portfolio preview will be available in shared dashboard
+            <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-xl p-4 border border-blue-200 dark:border-blue-700 shadow-sm">
+              <p className="text-sm text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                <Link className="w-4 h-4" />
+                Portfolio preview will be available in your shared dashboard
               </p>
             </div>
           )}
 
           {/* Action Buttons */}
-          <div className="flex gap-2 pt-2">
+          <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
             <Button
               type="submit"
               disabled={updateProfileMutation.isPending}
-              className="flex-1"
+              className="flex-1 h-12 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
             >
-              {updateProfileMutation.isPending ? 'Saving...' : 'Save Changes'}
+              {updateProfileMutation.isPending ? (
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  Saving Changes...
+                </div>
+              ) : (
+                'Save Changes'
+              )}
             </Button>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleReset}
-            >
-              Reset
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              onClick={onClose}
-            >
-              Cancel
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleReset}
+                className="px-6 h-12 border-gray-300 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
+              >
+                Reset
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                className="px-6 h-12 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+              >
+                Cancel
+              </Button>
+            </div>
           </div>
         </form>
 

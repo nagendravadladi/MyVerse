@@ -11,6 +11,19 @@ interface FloatingDockProps {
   userId: number;
 }
 
+const defaultApps = [
+  { name: 'Gmail', url: 'https://gmail.com', icon: '📧', color: 'bg-red-500' },
+  { name: 'YouTube', url: 'https://youtube.com', icon: '📺', color: 'bg-red-600' },
+  { name: 'Spotify', url: 'https://spotify.com', icon: '🎵', color: 'bg-green-500' },
+  { name: 'GitHub', url: 'https://github.com', icon: '🐙', color: 'bg-gray-900' },
+  { name: 'LinkedIn', url: 'https://linkedin.com', icon: '💼', color: 'bg-blue-600' },
+  { name: 'Twitter', url: 'https://twitter.com', icon: '🐦', color: 'bg-blue-400' },
+  { name: 'Instagram', url: 'https://instagram.com', icon: '📷', color: 'bg-pink-500' },
+  { name: 'ChatGPT', url: 'https://chat.openai.com', icon: '🤖', color: 'bg-green-600' },
+  { name: 'Discord', url: 'https://discord.com', icon: '💬', color: 'bg-indigo-600' },
+  { name: 'Netflix', url: 'https://netflix.com', icon: '🎬', color: 'bg-red-700' },
+];
+
 export default function FloatingDock({ userId }: FloatingDockProps) {
   const [showPinModal, setShowPinModal] = useState(false);
   const queryClient = useQueryClient();
@@ -36,8 +49,26 @@ export default function FloatingDock({ userId }: FloatingDockProps) {
     });
   };
 
-  const pinnedShortcuts = shortcuts.filter(s => s.isPinned).slice(0, 14);
-  const unpinnedShortcuts = shortcuts.filter(s => !s.isPinned);
+  // Combine user shortcuts with default apps
+  const allAvailableShortcuts = [
+    ...shortcuts,
+    ...defaultApps
+      .filter(app => !shortcuts.some(s => s.name.toLowerCase() === app.name.toLowerCase()))
+      .map((app, index) => ({
+        id: -(index + 1), // Negative IDs for default apps to avoid conflicts
+        name: app.name,
+        url: app.url,
+        icon: app.icon,
+        category: 'default',
+        userId,
+        orderIndex: 0,
+        isPinned: index < 6, // Pin first 6 default apps by default
+        createdAt: new Date()
+      }))
+  ];
+
+  const pinnedShortcuts = allAvailableShortcuts.filter(s => s.isPinned).slice(0, 14);
+  const unpinnedShortcuts = allAvailableShortcuts.filter(s => !s.isPinned);
 
   const togglePin = (id: number, currentPinned: boolean) => {
     if (!currentPinned && pinnedShortcuts.length >= 14) {
@@ -49,7 +80,21 @@ export default function FloatingDock({ userId }: FloatingDockProps) {
       return;
     }
     
-    updateShortcutMutation.mutate({ id, isPinned: !currentPinned });
+    // Only call mutation for real shortcuts (positive IDs)
+    if (id > 0) {
+      updateShortcutMutation.mutate({ id, isPinned: !currentPinned });
+    } else {
+      // For default apps, we'd need to create a shortcut first
+      const defaultApp = defaultApps.find((_, index) => -(index + 1) === id);
+      if (defaultApp) {
+        // Create shortcut for default app (this would be handled in QuickShortcuts component)
+        toast({
+          title: "Default App",
+          description: "Default apps are managed automatically. Create a custom shortcut in Quick Shortcuts to modify.",
+        });
+        return;
+      }
+    }
     
     toast({
       title: currentPinned ? "Unpinned" : "Pinned to dock",
@@ -72,22 +117,27 @@ export default function FloatingDock({ userId }: FloatingDockProps) {
     return '🔗';
   };
 
-  const getShortcutColor = (index: number) => {
+  const getShortcutColor = (shortcut: any, index: number) => {
+    // Use default app color if available
+    const defaultApp = defaultApps.find(app => 
+      shortcut.name && app.name.toLowerCase() === shortcut.name.toLowerCase()
+    );
+    if (defaultApp) {
+      return defaultApp.color;
+    }
+    
+    // Fallback gradient colors for user shortcuts
     const colors = [
-      'bg-red-500',
-      'bg-green-500', 
-      'bg-blue-500',
-      'bg-yellow-500',
-      'bg-purple-500',
-      'bg-pink-500',
-      'bg-indigo-500',
-      'bg-teal-500',
-      'bg-orange-500',
-      'bg-cyan-500',
-      'bg-lime-500',
-      'bg-amber-500',
-      'bg-emerald-500',
-      'bg-violet-500',
+      'bg-gradient-to-br from-red-500 to-red-600',
+      'bg-gradient-to-br from-green-500 to-green-600', 
+      'bg-gradient-to-br from-blue-500 to-blue-600',
+      'bg-gradient-to-br from-yellow-500 to-yellow-600',
+      'bg-gradient-to-br from-purple-500 to-purple-600',
+      'bg-gradient-to-br from-pink-500 to-pink-600',
+      'bg-gradient-to-br from-indigo-500 to-indigo-600',
+      'bg-gradient-to-br from-teal-500 to-teal-600',
+      'bg-gradient-to-br from-orange-500 to-orange-600',
+      'bg-gradient-to-br from-cyan-500 to-cyan-600',
     ];
     return colors[index % colors.length];
   };
@@ -114,11 +164,11 @@ export default function FloatingDock({ userId }: FloatingDockProps) {
                 key={shortcut.id}
                 variant="ghost"
                 size="sm"
-                className={`w-12 h-12 ${getShortcutColor(index)} rounded-xl hover:scale-110 transition-transform p-0`}
+                className={`w-12 h-12 ${getShortcutColor(shortcut, index)} rounded-xl hover:scale-110 transition-all duration-200 p-0 shadow-lg hover:shadow-xl border-0`}
                 onClick={() => window.open(shortcut.url, '_blank')}
                 title={shortcut.name}
               >
-                <span className="text-white text-xl">
+                <span className="text-white text-xl drop-shadow-sm">
                   {getShortcutIcon(shortcut.name, shortcut.icon || '')}
                 </span>
               </Button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Music, Play, SkipBack, SkipForward, Plus } from "lucide-react";
+import { Music, Play, Pause, SkipBack, SkipForward, Plus, Volume2, ExternalLink } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { MusicPlaylist } from "@shared/schema";
 
@@ -23,6 +23,9 @@ export default function MusicSection({ userId }: MusicSectionProps) {
   });
   const [currentlyPlaying, setCurrentlyPlaying] = useState<MusicPlaylist | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
   const queryClient = useQueryClient();
 
   const { data: playlists = [] } = useQuery<MusicPlaylist[]>({
@@ -101,41 +104,79 @@ export default function MusicSection({ userId }: MusicSectionProps) {
         </CardHeader>
         <CardContent>
           {/* Music Player */}
-          <div className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-xl p-4 mb-4">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-12 h-12 bg-purple-400 rounded-lg flex items-center justify-center">
-                <Music className="text-white" />
+          <div className="bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900 dark:to-pink-900 rounded-xl p-6 mb-4 shadow-lg">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg">
+                <Music className="text-white w-8 h-8" />
               </div>
               <div className="flex-1">
-                <p className="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                <p className="font-semibold text-gray-800 dark:text-gray-200 text-lg">
                   {currentlyPlaying ? currentlyPlaying.name : 'No music playing'}
                 </p>
-                <p className="text-gray-600 dark:text-gray-400 text-xs">
-                  {currentlyPlaying ? currentlyPlaying.platform : 'Select a playlist'}
+                <p className="text-gray-600 dark:text-gray-400 text-sm capitalize">
+                  {currentlyPlaying ? `${currentlyPlaying.platform} Playlist` : 'Select a playlist to start'}
                 </p>
               </div>
+              {currentlyPlaying?.url && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => window.open(currentlyPlaying.url, '_blank')}
+                  className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                </Button>
+              )}
             </div>
             
             {/* Controls */}
-            <div className="flex items-center justify-center gap-4 mb-3">
-              <Button variant="ghost" size="sm" className="w-8 h-8 rounded-full">
-                <SkipBack className="w-4 h-4" />
+            <div className="flex items-center justify-center gap-6 mb-4">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-10 h-10 rounded-full hover:bg-white/20 dark:hover:bg-black/20 transition-all"
+                disabled={!currentlyPlaying}
+              >
+                <SkipBack className="w-5 h-5" />
               </Button>
               <Button 
-                size="sm" 
-                className="w-10 h-10 rounded-full"
+                size="lg" 
+                className="w-14 h-14 rounded-full bg-white text-purple-600 hover:bg-gray-100 shadow-lg hover:shadow-xl transition-all duration-200"
                 onClick={() => setIsPlaying(!isPlaying)}
+                disabled={!currentlyPlaying}
               >
-                <Play className={`w-4 h-4 ${isPlaying ? 'fill-current' : ''}`} />
+                {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
               </Button>
-              <Button variant="ghost" size="sm" className="w-8 h-8 rounded-full">
-                <SkipForward className="w-4 h-4" />
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="w-10 h-10 rounded-full hover:bg-white/20 dark:hover:bg-black/20 transition-all"
+                disabled={!currentlyPlaying}
+              >
+                <SkipForward className="w-5 h-5" />
               </Button>
             </div>
             
             {/* Progress bar */}
-            <div className="w-full bg-gray-200 rounded-full h-1">
-              <div className="bg-primary h-1 rounded-full w-1/3 transition-all duration-1000"></div>
+            <div className="space-y-2">
+              <div className="w-full bg-white/30 dark:bg-black/30 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-white dark:bg-gray-200 h-2 rounded-full transition-all duration-300 shadow-sm"
+                  style={{ width: currentlyPlaying ? '45%' : '0%' }}
+                ></div>
+              </div>
+              <div className="flex justify-between text-xs text-gray-600 dark:text-gray-400">
+                <span>0:00</span>
+                <span>3:24</span>
+              </div>
+            </div>
+
+            {/* Volume Control */}
+            <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/20 dark:border-black/20">
+              <Volume2 className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+              <div className="flex-1 bg-white/30 dark:bg-black/30 rounded-full h-1">
+                <div className="bg-white dark:bg-gray-200 h-1 rounded-full w-2/3"></div>
+              </div>
             </div>
           </div>
 

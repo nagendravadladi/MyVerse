@@ -70,11 +70,12 @@ export default function Header({ user }: HeaderProps) {
             </div>
 
             {/* Focus Mode Toggle */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">Focus Mode</span>
+            <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+              <span className="text-sm font-medium text-gray-700 dark:text-gray-200">Focus Mode</span>
               <Switch
                 checked={focusModeEnabled}
                 onCheckedChange={toggleFocusMode}
+                className="data-[state=checked]:bg-primary data-[state=unchecked]:bg-gray-300 dark:data-[state=unchecked]:bg-gray-600"
               />
             </div>
 
